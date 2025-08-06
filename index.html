@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ras.</title>
+<title>My Poetry</title>
 <style>
   html {
     scroll-behavior: smooth;
@@ -49,8 +49,10 @@
     font-size: 1.2rem;
     backface-visibility: hidden;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* iPhone smooth scroll */
     scrollbar-width: thin;
     scrollbar-color: #555 #111;
+    touch-action: pan-y; /* Enables vertical swipe */
   }
   .poem::-webkit-scrollbar {
     width: 8px;
@@ -228,7 +230,6 @@ with you.`
     container.scrollTop = 0;
     container.innerHTML = '';
 
-    // Title
     const titleSpan = document.createElement('span');
     titleSpan.className = 'poem-title';
     container.appendChild(titleSpan);
@@ -309,10 +310,8 @@ with you.`
     skipRequested = true;
   });
 
-  // Initial render with typing effect
   updatePoems();
 </script>
 
 </body>
 </html>
-
