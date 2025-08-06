@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>My Poetry</title>
+<title>ras.</title>
 <style>
   html {
     scroll-behavior: smooth;
@@ -49,10 +49,10 @@
     font-size: 1.2rem;
     backface-visibility: hidden;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* iPhone smooth scroll */
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: #555 #111;
-    touch-action: pan-y; /* Enables vertical swipe */
+    touch-action: pan-y;
   }
   .poem::-webkit-scrollbar {
     width: 8px;
@@ -267,6 +267,12 @@ with you.`
     skipBtn.disabled = true;
     prevBtn.disabled = (currentIndex === 0);
     nextBtn.disabled = (currentIndex === poems.length - 1);
+
+    // ✅ FIX: Force iPhone to refresh scroll
+    container.style.overflowY = 'hidden';
+    setTimeout(() => {
+      container.style.overflowY = 'auto';
+    }, 50);
   }
 
   function preparePoem(container, poem) {
