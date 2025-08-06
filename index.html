@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Poetry</title>
+<style>
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Georgia', serif;
+    background-color: #000;
+    color: #fff;
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 20px;
+    line-height: 1.8;
+    perspective: 1000px;
+    user-select: none;
+    overflow-x: hidden;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 1em;
+    animation: whiteGlow 3s ease-in-out infinite, float 6s ease-in-out infinite;
+  }
+  .flip-container {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    transform-style: preserve-3d;
+    transition: transform 0.8s ease;
+    margin-bottom: 1.5rem;
+    background-color: #111;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .poem {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    white-space: pre-wrap;
+    font-size: 1.2rem;
+    backface-visibility: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #111;
+  }
+  .poem::-webkit-scrollbar {
+    width: 8px;
+  }
+  .poem::-webkit-scrollbar-track {
+    background: #111;
+  }
+  .poem::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  .poem::-webkit-scrollbar-thumb:hover {
+    background: #888;
+  }
+  .poem-title {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .poem-front {
+    color: #fff;
+  }
+  .poem-back {
+    color: #ccc;
+    transform: rotateY(180deg);
+  }
+  .flip-container.flipped {
+    transform: rotateY(180deg);
+  }
+  .nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 1rem;
+  }
+  button {
+    background: #222;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 8px 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+  }
+  button:hover:not(:disabled) {
+    background: #444;
+  }
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  @keyframes whiteGlow {
+    0%, 100% {
+      text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff;
+      color: #fff;
+    }
+    50% {
+      text-shadow: 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #fff;
+      color: #fff;
+    }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>
+</head>
+<body>
+
+<h1>XII.XIII.XXIV.</h1>
+
+<div class="flip-container" id="flipContainer">
+  <div class="poem poem-front" id="frontPoem"></div>
+  <div class="poem poem-back" id="backPoem"></div>
+</div>
+
+<div class="nav-buttons">
+  <button id="prevBtn" disabled>Previous</button>
+  <button id="skipBtn" disabled>Skip</button>
+  <button id="nextBtn">Next</button>
+</div>
+
+<footer>
+  © 2025 ras. All rights reserved.
+</footer>
+
+<script>
+  const flipContainer = document.getElementById('flipContainer');
+  const prevBtn = document.getElementById('prevBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const frontPoem = document.getElementById('frontPoem');
+  const backPoem = document.getElementById('backPoem');
+
+  const poems = [
+    {
+      title: 'Love',
+      text: `Love stings—
+it cuts in ways we can’t always see,
+and sometimes,
+we mistake its shadows for light.
+
+To me,
+love is commitment,
+the quiet trust
+you place in someone’s hands.
+
+Love is warmth—
+a soft flame on cold nights.
+Love is comfort,
+a steady pulse when the world feels hollow.
+Love is joy,
+laughter echoing in shared silence.
+
+But love…
+love is also pain—
+a weight you carry
+even when your arms ache.
+
+It’s a complex,
+twisting thing,
+and sometimes,
+it feels like dying
+just to keep it alive.`
+    },
+    {
+      title: 'Trust',
+      text: `You weren’t just there—
+I reached for you.
+
+Not to fill the empty space
+someone else left behind,
+but because you were the light
+guiding me out of it.
+
+No other voices,
+no other hands—
+only yours.
+
+And now that I hold it,
+I’d start all over again,
+through every wrong turn
+and every dark night,
+just to end up here—
+with you.`
+    },
+    {
+      title: 'n/a',
+      text: 'to be continued.'
+    }
+  ];
+
+  let currentIndex = 0;
+  let showingFront = true;
+  let isTyping = false;
+  let skipRequested = false;
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  async function typePoem(container, poem) {
+    isTyping = true;
+    skipRequested = false;
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    skipBtn.disabled = false;
+    container.scrollTop = 0;
+    container.innerHTML = '';
+
+    // Title
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'poem-title';
+    container.appendChild(titleSpan);
+
+    const titleText = poem.title;
+    for(let i = 0; i < titleText.length; i++) {
+      if (skipRequested) break;
+      titleSpan.innerHTML += escapeHtml(titleText[i]);
+      await new Promise(r => setTimeout(r, 150));
+    }
+    if (skipRequested) {
+      titleSpan.innerHTML = escapeHtml(titleText);
+    }
+
+    container.appendChild(document.createElement('br'));
+
+    const textContent = poem.text;
+    for(let i = 0; i < textContent.length; i++) {
+      if (skipRequested) break;
+      if (textContent[i] === '\n') {
+        container.appendChild(document.createElement('br'));
+      } else {
+        container.innerHTML += escapeHtml(textContent[i]);
+      }
+      container.scrollTop = container.scrollHeight;
+      await new Promise(r => setTimeout(r, 60));
+    }
+    if (skipRequested) {
+      const fullText = escapeHtml(textContent).replace(/\n/g, '<br>');
+      container.innerHTML = `<span class="poem-title">${escapeHtml(poem.title)}</span><br>${fullText}`;
+      container.scrollTop = 0;
+    }
+
+    isTyping = false;
+    skipBtn.disabled = true;
+    prevBtn.disabled = (currentIndex === 0);
+    nextBtn.disabled = (currentIndex === poems.length - 1);
+  }
+
+  function preparePoem(container, poem) {
+    const escapedTitle = escapeHtml(poem.title);
+    const escapedText = escapeHtml(poem.text).replace(/\n/g, '<br>');
+    container.innerHTML = `<span class="poem-title">${escapedTitle}</span><br>${escapedText}`;
+    container.scrollTop = 0;
+  }
+
+  async function updatePoems() {
+    const nextIndex = (currentIndex + 1) % poems.length;
+    const prevIndex = (currentIndex - 1 + poems.length) % poems.length;
+
+    if (showingFront) {
+      await typePoem(frontPoem, poems[currentIndex]);
+      preparePoem(backPoem, poems[nextIndex]);
+    } else {
+      await typePoem(backPoem, poems[currentIndex]);
+      preparePoem(frontPoem, poems[prevIndex]);
+    }
+  }
+
+  prevBtn.addEventListener('click', async () => {
+    if (isTyping || currentIndex === 0) return;
+    currentIndex--;
+    flipContainer.classList.toggle('flipped');
+    showingFront = !showingFront;
+    await updatePoems();
+  });
+
+  nextBtn.addEventListener('click', async () => {
+    if (isTyping || currentIndex === poems.length - 1) return;
+    currentIndex++;
+    flipContainer.classList.toggle('flipped');
+    showingFront = !showingFront;
+    await updatePoems();
+  });
+
+  skipBtn.addEventListener('click', () => {
+    if (!isTyping) return;
+    skipRequested = true;
+  });
+
+  // Initial render with typing effect
+  updatePoems();
+</script>
+
+</body>
+</html>
